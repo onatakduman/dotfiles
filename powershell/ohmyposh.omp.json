@@ -12,38 +12,52 @@
         {
           "type": "text",
           "style": "plain",
-          "template": "\u256d\u2500",
-          "foreground": "white"
-        },
-        {
-          "type": "os",
-          "style": "plain",
-          "template": "{{ if .WSL }}\uf17c on {{ end }}{{ .Icon }} ",
+          "template": "<blue,bold>#</> ",
           "foreground": "white"
         },
         {
           "type": "session",
           "style": "plain",
-          "template": "<cyan>{{ .UserName }}</> @ <green>{{ .HostName }}</> ",
+          "template": "<cyan>{{ .UserName }}</> @ <green>{{ .HostName }}</> in ",
           "foreground": "white"
         },
         {
           "type": "path",
           "style": "plain",
-          "template": "in <yellow>{{ .Path }}</> ",
+          "template": "<yellow,bold>{{ .Path }}</> ",
           "foreground": "white",
           "properties": {
-            "style": "full"
+            "style": "full",
+            "home_icon": "~"
           }
         },
         {
           "type": "git",
           "style": "plain",
-          "template": "on <magenta>\ue0a0 {{ .HEAD }}{{ if .Staging.Changed }} \u2714{{ end }}{{ if .Working.Changed }} \u270e{{ end }}</> ",
+          "template": "on <blue>git</><cyan>:{{ .HEAD }}</>{{ if .Working.Changed }} <red>x</>{{ else }} <green>o</>{{ end }} ",
           "foreground": "white",
           "properties": {
-            "fetch_status": true
+            "fetch_status": true,
+            "branch_icon": ""
           }
+        },
+        {
+          "type": "python",
+          "style": "plain",
+          "template": "<green>{{ if .Venv }}{{ .Venv }}{{ end }}</> ",
+          "foreground": "white"
+        },
+        {
+          "type": "time",
+          "style": "plain",
+          "template": "[{{ .CurrentDate | date \"15:04:05\" }}]",
+          "foreground": "white"
+        },
+        {
+          "type": "status",
+          "style": "plain",
+          "template": "{{ if gt .Code 0 }} C:<red>{{ .Code }}</>{{ end }}",
+          "foreground": "white"
         }
       ]
     },
@@ -55,7 +69,7 @@
         {
           "type": "text",
           "style": "plain",
-          "template": "\u2570\u2500 \u276f ",
+          "template": "<red,bold>$</> ",
           "foreground": "white"
         }
       ]
