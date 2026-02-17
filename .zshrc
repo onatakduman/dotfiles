@@ -7,15 +7,15 @@ ZSH_THEME="ys"
 # Plugins
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete)
 
-# zsh-autocomplete: varsayılan olarak history eşleştirmesi göster
+# zsh-autocomplete: default to history matching
 zstyle ':autocomplete:*' default-context history-incremental-search-backward
 zstyle ':autocomplete:*' min-input 1
 setopt HIST_FIND_NO_DUPS
 
 source $ZSH/oh-my-zsh.sh
 
-# Ortak PATH
+# Common PATH
 export PATH="$HOME/.local/bin:$PATH"
 
-# Makineye özel ayarlar (bu dosya git'e eklenmez)
+# Machine-specific config (not tracked by git)
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

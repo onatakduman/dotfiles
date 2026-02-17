@@ -1,4 +1,4 @@
-# Dotfiles Windows Kurulumu (PowerShell)
+# Dotfiles Windows Setup (PowerShell)
 
 $ErrorActionPreference = "Stop"
 $DotfilesRepo = "https://github.com/onatakduman/dotfiles.git"
@@ -10,60 +10,60 @@ function Warn($msg)  { Write-Host "[WARN] $msg" -ForegroundColor Yellow }
 
 Write-Host ""
 Write-Host "========================================="
-Write-Host "  Dotfiles Windows Kurulumu"
+Write-Host "  Dotfiles Windows Setup"
 Write-Host "========================================="
 Write-Host ""
 
 # --- ExecutionPolicy ---
 $policy = Get-ExecutionPolicy -Scope CurrentUser
 if ($policy -eq "Restricted") {
-    Info "ExecutionPolicy ayarlaniyor..."
+    Info "Setting ExecutionPolicy..."
     Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
     Ok "ExecutionPolicy: RemoteSigned"
 }
 
-# --- winget kontrol ---
+# --- winget check ---
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-    Warn "winget bulunamadi. Microsoft Store'dan App Installer'i kurun."
+    Warn "winget not found. Install App Installer from Microsoft Store."
     exit 1
 }
 
-# --- Git kurulumu ---
+# --- Install Git ---
 if (Get-Command git -ErrorAction SilentlyContinue) {
-    Ok "Git zaten kurulu"
+    Ok "Git already installed"
 } else {
-    Info "Git kuruluyor..."
+    Info "Installing Git..."
     winget install Git.Git -s winget --accept-source-agreements --accept-package-agreements
     $env:PATH += ";C:\Program Files\Git\cmd"
-    Ok "Git kuruldu"
+    Ok "Git installed"
 }
 
-# --- Repo clone ---
+# --- Clone repo ---
 if (Test-Path "$DotfilesDir\.git") {
-    Info "Dotfiles mevcut, guncelleniyor..."
+    Info "Dotfiles exist, updating..."
     git -C $DotfilesDir pull --ff-only
-    Ok "Dotfiles guncellendi"
+    Ok "Dotfiles updated"
 } else {
     if (Test-Path $DotfilesDir) {
-        Warn "$DotfilesDir mevcut ama git reposu degil, yedekleniyor..."
+        Warn "$DotfilesDir exists but is not a git repo, backing up..."
         Move-Item $DotfilesDir "$DotfilesDir.bak"
     }
-    Info "Dotfiles indiriliyor..."
+    Info "Downloading dotfiles..."
     git clone --depth 1 $DotfilesRepo $DotfilesDir
-    Ok "Dotfiles indirildi: $DotfilesDir"
+    Ok "Dotfiles downloaded: $DotfilesDir"
 }
 
-# --- Oh My Posh kurulumu ---
+# --- Install Oh My Posh ---
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    Ok "Oh My Posh zaten kurulu"
+    Ok "Oh My Posh already installed"
 } else {
-    Info "Oh My Posh kuruluyor..."
+    Info "Installing Oh My Posh..."
     winget install JanDeDobbeleer.OhMyPosh -s winget --accept-source-agreements --accept-package-agreements
-    Ok "Oh My Posh kuruldu"
+    Ok "Oh My Posh installed"
 }
 
-# --- Nerd Font kurulumu ---
-Info "Nerd Font kontrol ediliyor..."
+# --- Install Nerd Font ---
+Info "Checking Nerd Font..."
 $fontInstalled = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\Windows\Fonts" -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -match "Meslo" }
 if (-not $fontInstalled) {
@@ -71,18 +71,18 @@ if (-not $fontInstalled) {
         Where-Object { $_.Name -match "Meslo" }
 }
 if ($fontInstalled) {
-    Ok "Nerd Font zaten kurulu"
+    Ok "Nerd Font already installed"
 } else {
-    Info "MesloLGS Nerd Font kuruluyor..."
+    Info "Installing MesloLGS Nerd Font..."
     oh-my-posh font install meslo
-    Ok "Font kuruldu. Terminal ayarlarindan 'MesloLGS Nerd Font' secin."
+    Ok "Font installed. Set 'MesloLGS Nerd Font' in your terminal settings."
 }
 
-# --- PowerShell profil symlink ---
+# --- PowerShell profile symlink ---
 $profileDir = Split-Path -Parent $PROFILE
 if (-not (Test-Path $profileDir)) {
     New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
-    Info "Profil dizini olusturuldu: $profileDir"
+    Info "Profile directory created: $profileDir"
 }
 
 $source = Join-Path $DotfilesDir "powershell\Microsoft.PowerShell_profile.ps1"
@@ -94,18 +94,18 @@ if (Test-Path $PROFILE) {
     } else {
         $backup = "$PROFILE.bak"
         Move-Item $PROFILE $backup
-        Warn "Mevcut profil yedeklendi: $backup"
+        Warn "Existing profile backed up: $backup"
     }
 }
 
 New-Item -ItemType SymbolicLink -Path $PROFILE -Target $source | Out-Null
-Ok "Profil baglandi: $PROFILE -> $source"
+Ok "Profile linked: $PROFILE -> $source"
 
 Write-Host ""
 Write-Host "========================================="
-Ok "Kurulum tamamlandi! PowerShell'i yeniden acin."
+Ok "Setup complete! Restart PowerShell."
 Write-Host "========================================="
 Write-Host ""
-Write-Host "Not: Terminal fontunu 'MesloLGS Nerd Font' olarak degistirin."
-Write-Host "Makineye ozel ayarlar icin: $env:USERPROFILE\.powershell.local.ps1"
+Write-Host "Note: Set terminal font to 'MesloLGS Nerd Font'."
+Write-Host "For machine-specific config: $env:USERPROFILE\.powershell.local.ps1"
 Write-Host ""

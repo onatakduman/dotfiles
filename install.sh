@@ -8,7 +8,7 @@ info() { printf "\033[1;34m[INFO]\033[0m %s\n" "$1"; }
 ok()   { printf "\033[1;32m[OK]\033[0m %s\n" "$1"; }
 warn() { printf "\033[1;33m[WARN]\033[0m %s\n" "$1"; }
 
-# --- OS tespiti ---
+# --- OS detection ---
 detect_os() {
     case "$(uname -s)" in
         Linux*)
@@ -30,106 +30,106 @@ detect_os() {
 }
 
 OS=$(detect_os)
-info "Isletim sistemi: $OS"
+info "Operating system: $OS"
 
-# --- git kurulumu ---
+# --- Install git ---
 install_git() {
     if command -v git &>/dev/null; then
-        ok "git zaten kurulu"
+        ok "git already installed"
         return
     fi
 
-    info "git kuruluyor..."
+    info "Installing git..."
     case "$OS" in
         debian)  sudo apt update && sudo apt install -y git ;;
         fedora)  sudo dnf install -y git ;;
         arch)    sudo pacman -S --noconfirm git ;;
         macos)   xcode-select --install 2>/dev/null || true ;;
-        *)       warn "git otomatik kurulamadi"; exit 1 ;;
+        *)       warn "Could not install git automatically"; exit 1 ;;
     esac
-    ok "git kuruldu"
+    ok "git installed"
 }
 
-# --- curl kurulumu ---
+# --- Install curl ---
 install_curl() {
     if command -v curl &>/dev/null; then
-        ok "curl zaten kurulu"
+        ok "curl already installed"
         return
     fi
 
-    info "curl kuruluyor..."
+    info "Installing curl..."
     case "$OS" in
         debian)  sudo apt update && sudo apt install -y curl ;;
         fedora)  sudo dnf install -y curl ;;
         arch)    sudo pacman -S --noconfirm curl ;;
-        *)       warn "curl otomatik kurulamadi"; exit 1 ;;
+        *)       warn "Could not install curl automatically"; exit 1 ;;
     esac
-    ok "curl kuruldu"
+    ok "curl installed"
 }
 
-# --- zsh kurulumu ---
+# --- Install zsh ---
 install_zsh() {
     if command -v zsh &>/dev/null; then
-        ok "zsh zaten kurulu: $(zsh --version)"
+        ok "zsh already installed: $(zsh --version)"
         return
     fi
 
-    info "zsh kuruluyor..."
+    info "Installing zsh..."
     case "$OS" in
         debian)  sudo apt update && sudo apt install -y zsh ;;
         fedora)  sudo dnf install -y zsh ;;
         arch)    sudo pacman -S --noconfirm zsh ;;
         macos)   brew install zsh ;;
-        *)       warn "zsh otomatik kurulamadi, lutfen manuel kurun"; exit 1 ;;
+        *)       warn "Could not install zsh automatically, please install manually"; exit 1 ;;
     esac
-    ok "zsh kuruldu"
+    ok "zsh installed"
 }
 
-# --- Repo clone ---
+# --- Clone repo ---
 clone_dotfiles() {
     if [ -d "$DOTFILES_DIR/.git" ]; then
-        info "Dotfiles mevcut, guncelleniyor..."
+        info "Dotfiles exist, updating..."
         git -C "$DOTFILES_DIR" pull --ff-only
-        ok "Dotfiles guncellendi"
+        ok "Dotfiles updated"
         return
     fi
 
     if [ -d "$DOTFILES_DIR" ]; then
-        warn "$DOTFILES_DIR mevcut ama git reposu degil, yedekleniyor..."
+        warn "$DOTFILES_DIR exists but is not a git repo, backing up..."
         mv "$DOTFILES_DIR" "${DOTFILES_DIR}.bak"
     fi
 
-    info "Dotfiles indiriliyor..."
+    info "Downloading dotfiles..."
     git clone --depth 1 "$DOTFILES_REPO" "$DOTFILES_DIR"
-    ok "Dotfiles indirildi: $DOTFILES_DIR"
+    ok "Dotfiles downloaded: $DOTFILES_DIR"
 }
 
-# --- Oh My Zsh kurulumu ---
+# --- Install Oh My Zsh ---
 install_ohmyzsh() {
     if [ -d "$HOME/.oh-my-zsh" ]; then
-        ok "Oh My Zsh zaten kurulu"
+        ok "Oh My Zsh already installed"
         return
     fi
 
-    info "Oh My Zsh kuruluyor..."
+    info "Installing Oh My Zsh..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    ok "Oh My Zsh kuruldu"
+    ok "Oh My Zsh installed"
 }
 
-# --- Eklenti kurulumu ---
+# --- Install plugin ---
 install_plugin() {
     local name="$1"
     local repo="$2"
     local dest="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$name"
 
     if [ -d "$dest" ]; then
-        ok "Plugin zaten kurulu: $name"
+        ok "Plugin already installed: $name"
         return
     fi
 
-    info "Plugin kuruluyor: $name"
+    info "Installing plugin: $name"
     git clone --depth 1 "$repo" "$dest"
-    ok "Plugin kuruldu: $name"
+    ok "Plugin installed: $name"
 }
 
 # --- Symlink ---
@@ -140,37 +140,37 @@ link_file() {
     if [ -L "$dst" ]; then
         rm "$dst"
     elif [ -f "$dst" ]; then
-        warn "$dst mevcut, yedekleniyor -> ${dst}.bak"
+        warn "$dst exists, backing up -> ${dst}.bak"
         mv "$dst" "${dst}.bak"
     fi
 
     ln -sf "$src" "$dst"
-    ok "Link: $dst -> $src"
+    ok "Linked: $dst -> $src"
 }
 
-# --- Varsayilan shell ---
+# --- Default shell ---
 set_default_shell() {
     local zsh_path
     zsh_path="$(command -v zsh)"
 
     if [ "$SHELL" = "$zsh_path" ]; then
-        ok "Varsayilan shell zaten zsh"
+        ok "Default shell is already zsh"
         return
     fi
 
-    info "Varsayilan shell zsh olarak ayarlaniyor..."
+    info "Setting default shell to zsh..."
     if ! grep -q "$zsh_path" /etc/shells; then
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
     chsh -s "$zsh_path"
-    ok "Varsayilan shell: zsh"
+    ok "Default shell: zsh"
 }
 
-# --- Ana kurulum ---
+# --- Main ---
 main() {
     echo ""
     echo "========================================="
-    echo "  Dotfiles Kurulumu"
+    echo "  Dotfiles Setup"
     echo "========================================="
     echo ""
 
@@ -190,10 +190,10 @@ main() {
 
     echo ""
     echo "========================================="
-    ok "Kurulum tamamlandi! Terminali yeniden acin."
+    ok "Setup complete! Restart your terminal."
     echo "========================================="
     echo ""
-    echo "Makineye ozel ayarlar icin ~/.zshrc.local dosyasini olusturun."
+    echo "For machine-specific config, create ~/.zshrc.local"
     echo ""
 }
 
