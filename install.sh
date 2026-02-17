@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
+DOTFILES_REPO="https://github.com/onatakduman/dotfiles.git"
+DOTFILES_DIR="$HOME/dotfiles"
 
 info() { printf "\033[1;34m[INFO]\033[0m %s\n" "$1"; }
 ok()   { printf "\033[1;32m[OK]\033[0m %s\n" "$1"; }
@@ -31,6 +32,41 @@ detect_os() {
 OS=$(detect_os)
 info "Isletim sistemi: $OS"
 
+# --- git kurulumu ---
+install_git() {
+    if command -v git &>/dev/null; then
+        ok "git zaten kurulu"
+        return
+    fi
+
+    info "git kuruluyor..."
+    case "$OS" in
+        debian)  sudo apt update && sudo apt install -y git ;;
+        fedora)  sudo dnf install -y git ;;
+        arch)    sudo pacman -S --noconfirm git ;;
+        macos)   xcode-select --install 2>/dev/null || true ;;
+        *)       warn "git otomatik kurulamadi"; exit 1 ;;
+    esac
+    ok "git kuruldu"
+}
+
+# --- curl kurulumu ---
+install_curl() {
+    if command -v curl &>/dev/null; then
+        ok "curl zaten kurulu"
+        return
+    fi
+
+    info "curl kuruluyor..."
+    case "$OS" in
+        debian)  sudo apt update && sudo apt install -y curl ;;
+        fedora)  sudo dnf install -y curl ;;
+        arch)    sudo pacman -S --noconfirm curl ;;
+        *)       warn "curl otomatik kurulamadi"; exit 1 ;;
+    esac
+    ok "curl kuruldu"
+}
+
 # --- zsh kurulumu ---
 install_zsh() {
     if command -v zsh &>/dev/null; then
@@ -49,22 +85,23 @@ install_zsh() {
     ok "zsh kuruldu"
 }
 
-# --- git kurulumu ---
-install_git() {
-    if command -v git &>/dev/null; then
-        ok "git zaten kurulu"
+# --- Repo clone ---
+clone_dotfiles() {
+    if [ -d "$DOTFILES_DIR/.git" ]; then
+        info "Dotfiles mevcut, guncelleniyor..."
+        git -C "$DOTFILES_DIR" pull --ff-only
+        ok "Dotfiles guncellendi"
         return
     fi
 
-    info "git kuruluyor..."
-    case "$OS" in
-        debian)  sudo apt update && sudo apt install -y git ;;
-        fedora)  sudo dnf install -y git ;;
-        arch)    sudo pacman -S --noconfirm git ;;
-        macos)   xcode-select --install 2>/dev/null || true ;;
-        *)       warn "git otomatik kurulamadi"; exit 1 ;;
-    esac
-    ok "git kuruldu"
+    if [ -d "$DOTFILES_DIR" ]; then
+        warn "$DOTFILES_DIR mevcut ama git reposu degil, yedekleniyor..."
+        mv "$DOTFILES_DIR" "${DOTFILES_DIR}.bak"
+    fi
+
+    info "Dotfiles indiriliyor..."
+    git clone --depth 1 "$DOTFILES_REPO" "$DOTFILES_DIR"
+    ok "Dotfiles indirildi: $DOTFILES_DIR"
 }
 
 # --- Oh My Zsh kurulumu ---
@@ -111,7 +148,7 @@ link_file() {
     ok "Link: $dst -> $src"
 }
 
-# --- Varsayılan shell ---
+# --- Varsayilan shell ---
 set_default_shell() {
     local zsh_path
     zsh_path="$(command -v zsh)"
@@ -138,7 +175,9 @@ main() {
     echo ""
 
     install_git
+    install_curl
     install_zsh
+    clone_dotfiles
     install_ohmyzsh
 
     install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions.git"
