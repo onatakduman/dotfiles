@@ -1,0 +1,64 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "version": 2,
+  "final_space": true,
+  "console_title_template": "{{ .Shell }} in {{ .Folder }}",
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "\u256d\u2500",
+          "foreground": "white"
+        },
+        {
+          "type": "os",
+          "style": "plain",
+          "template": "{{ if .WSL }}\uf17c on {{ end }}{{ .Icon }} ",
+          "foreground": "white"
+        },
+        {
+          "type": "session",
+          "style": "plain",
+          "template": "<cyan>{{ .UserName }}</> @ <green>{{ .HostName }}</> ",
+          "foreground": "white"
+        },
+        {
+          "type": "path",
+          "style": "plain",
+          "template": "in <yellow>{{ .Path }}</> ",
+          "foreground": "white",
+          "properties": {
+            "style": "full"
+          }
+        },
+        {
+          "type": "git",
+          "style": "plain",
+          "template": "on <magenta>\ue0a0 {{ .HEAD }}{{ if .Staging.Changed }} \u2714{{ end }}{{ if .Working.Changed }} \u270e{{ end }}</> ",
+          "foreground": "white",
+          "properties": {
+            "fetch_status": true
+          }
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "newline": true,
+      "segments": [
+        {
+          "type": "text",
+          "style": "plain",
+          "template": "\u2570\u2500 \u276f ",
+          "foreground": "white"
+        }
+      ]
+    }
+  ]
+}
