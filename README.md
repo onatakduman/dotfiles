@@ -56,6 +56,7 @@ git clone https://github.com/onatakduman/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh
 
 # Windows (PowerShell)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 powershell -File $env:USERPROFILE\dotfiles\install.ps1
 ```
 
@@ -68,3 +69,13 @@ powershell -File $env:USERPROFILE\dotfiles\install.ps1
 | Fedora / RHEL | Zsh | Oh My Zsh |
 | Arch / Manjaro | Zsh | Oh My Zsh |
 | Windows | PowerShell | Oh My Posh |
+
+## Troubleshooting
+
+**PowerShell: "running scripts is disabled on this system"**
+
+If you see this error, run the following command once before installing:
+
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+```

@@ -162,8 +162,56 @@ set_default_shell() {
     if ! grep -q "$zsh_path" /etc/shells; then
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
-    chsh -s "$zsh_path"
+    sudo chsh -s "$zsh_path" "$USER"
     ok "Default shell: zsh"
+}
+
+# --- Root setup ---
+setup_root() {
+    local zsh_path
+    zsh_path="$(command -v zsh)"
+
+    # macOS doesn't typically use root interactively
+    if [ "$OS" = "macos" ]; then
+        return
+    fi
+
+    info "Setting up root user..."
+
+    # Oh My Zsh for root
+    if sudo test -d /root/.oh-my-zsh; then
+        ok "Root: Oh My Zsh already installed"
+    else
+        info "Root: Installing Oh My Zsh..."
+        sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        ok "Root: Oh My Zsh installed"
+    fi
+
+    # Plugins for root
+    local root_custom="/root/.oh-my-zsh/custom/plugins"
+    for plugin in zsh-autosuggestions zsh-syntax-highlighting zsh-autocomplete; do
+        if sudo test -d "$root_custom/$plugin"; then
+            ok "Root: Plugin already installed: $plugin"
+        else
+            info "Root: Installing plugin: $plugin"
+            sudo git clone --depth 1 "https://github.com/$( [ "$plugin" = "zsh-autocomplete" ] && echo "marlonrichert" || echo "zsh-users" )/$plugin.git" "$root_custom/$plugin"
+            ok "Root: Plugin installed: $plugin"
+        fi
+    done
+
+    # Symlink .zshrc for root
+    if sudo test -L /root/.zshrc; then
+        sudo rm /root/.zshrc
+    elif sudo test -f /root/.zshrc; then
+        warn "Root: .zshrc exists, backing up -> /root/.zshrc.bak"
+        sudo mv /root/.zshrc /root/.zshrc.bak
+    fi
+    sudo ln -sf "$DOTFILES_DIR/.zshrc" /root/.zshrc
+    ok "Root: Linked /root/.zshrc -> $DOTFILES_DIR/.zshrc"
+
+    # Default shell for root
+    sudo chsh -s "$zsh_path" root
+    ok "Root: Default shell set to zsh"
 }
 
 # --- Main ---
@@ -187,6 +235,7 @@ main() {
     link_file "$DOTFILES_DIR/.zshrc" "$HOME/.zshrc"
 
     set_default_shell
+    setup_root
 
     echo ""
     echo "========================================="
