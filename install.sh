@@ -112,7 +112,7 @@ install_ohmyzsh() {
     fi
 
     info "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc || true
     ok "Oh My Zsh installed"
 }
 
@@ -183,7 +183,7 @@ setup_root() {
         ok "Root: Oh My Zsh already installed"
     else
         info "Root: Installing Oh My Zsh..."
-        sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc || true
         ok "Root: Oh My Zsh installed"
     fi
 
