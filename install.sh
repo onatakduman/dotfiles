@@ -162,8 +162,13 @@ set_default_shell() {
     if ! grep -q "$zsh_path" /etc/shells; then
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
-    sudo chsh -s "$zsh_path" "$USER"
-    ok "Default shell: zsh"
+    if sudo chsh -s "$zsh_path" "$USER"; then
+        ok "Default shell: zsh"
+    else
+        warn "chsh failed, trying without sudo..."
+        chsh -s "$zsh_path"
+        ok "Default shell: zsh"
+    fi
 }
 
 # --- Root setup ---
