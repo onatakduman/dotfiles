@@ -69,20 +69,25 @@ install_curl() {
 
 # --- Install zsh ---
 install_zsh() {
-    if command -v zsh &>/dev/null; then
+    if command -v zsh &>/dev/null && zsh --version &>/dev/null; then
         ok "zsh already installed: $(zsh --version)"
         return
     fi
 
     info "Installing zsh..."
     case "$OS" in
-        debian)  sudo apt update && sudo apt install -y zsh ;;
+        debian)  sudo apt update && sudo apt install -y --reinstall zsh ;;
         fedora)  sudo dnf install -y zsh ;;
         arch)    sudo pacman -S --noconfirm zsh ;;
         macos)   brew install zsh ;;
         *)       warn "Could not install zsh automatically, please install manually"; exit 1 ;;
     esac
-    ok "zsh installed"
+
+    if ! command -v zsh &>/dev/null; then
+        warn "zsh binary not found after install, trying rehash..."
+        hash -r
+    fi
+    ok "zsh installed: $(zsh --version)"
 }
 
 # --- Clone repo ---
@@ -106,9 +111,15 @@ clone_dotfiles() {
 
 # --- Install Oh My Zsh ---
 install_ohmyzsh() {
-    if [ -d "$HOME/.oh-my-zsh" ]; then
+    if [ -d "$HOME/.oh-my-zsh" ] && [ -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
         ok "Oh My Zsh already installed"
         return
+    fi
+
+    # Remove broken installation if exists
+    if [ -d "$HOME/.oh-my-zsh" ]; then
+        warn "Oh My Zsh installation is broken, reinstalling..."
+        rm -rf "$HOME/.oh-my-zsh"
     fi
 
     info "Installing Oh My Zsh..."
@@ -122,9 +133,15 @@ install_plugin() {
     local repo="$2"
     local dest="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$name"
 
-    if [ -d "$dest" ]; then
+    if [ -d "$dest/.git" ]; then
         ok "Plugin already installed: $name"
         return
+    fi
+
+    # Remove broken plugin dir if exists
+    if [ -d "$dest" ]; then
+        warn "Plugin $name is broken, reinstalling..."
+        rm -rf "$dest"
     fi
 
     info "Installing plugin: $name"
@@ -195,9 +212,13 @@ setup_root() {
     info "Setting up root user..."
 
     # Oh My Zsh for root
-    if sudo test -d /root/.oh-my-zsh; then
+    if sudo test -d /root/.oh-my-zsh && sudo test -f /root/.oh-my-zsh/oh-my-zsh.sh; then
         ok "Root: Oh My Zsh already installed"
     else
+        if sudo test -d /root/.oh-my-zsh; then
+            warn "Root: Oh My Zsh installation is broken, reinstalling..."
+            sudo rm -rf /root/.oh-my-zsh
+        fi
         info "Root: Installing Oh My Zsh..."
         sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc || true
         ok "Root: Oh My Zsh installed"
