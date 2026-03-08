@@ -80,6 +80,16 @@ The installer changes the default shell with `chsh`, but this requires a full lo
 exec zsh -l
 ```
 
+**Windows: History list (ListView) not working**
+
+The installer automatically updates PSReadLine, but if it fails you can update manually:
+
+```powershell
+Install-Module PSReadLine -Force -SkipPublisherCheck
+```
+
+Restart PowerShell after updating.
+
 **PowerShell: "running scripts is disabled on this system"**
 
 If you see this error, run the following command once before installing:
