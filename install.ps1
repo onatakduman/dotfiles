@@ -78,6 +78,16 @@ if ($fontInstalled) {
     Ok "Font installed. Set 'MesloLGS Nerd Font' in your terminal settings."
 }
 
+# --- Update PSReadLine ---
+$psrl = Get-Module PSReadLine -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
+if ($psrl -and $psrl.Version -lt [version]"2.2.0") {
+    Info "Updating PSReadLine (current: $($psrl.Version))..."
+    Install-Module PSReadLine -Force -SkipPublisherCheck
+    Ok "PSReadLine updated"
+} else {
+    Ok "PSReadLine is up to date ($($psrl.Version))"
+}
+
 # --- PowerShell profile symlink ---
 $profileDir = Split-Path -Parent $PROFILE
 if (-not (Test-Path $profileDir)) {
