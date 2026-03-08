@@ -14,6 +14,12 @@ setopt HIST_FIND_NO_DUPS
 
 source $ZSH/oh-my-zsh.sh
 
+# Override zsh-autocomplete: Up/Down searches history based on current input
+bindkey '\e[A' history-search-backward
+bindkey '\e[B' history-search-forward
+bindkey '\eOA' history-search-backward
+bindkey '\eOB' history-search-forward
+
 # Common PATH
 export PATH="$HOME/.local/bin:$PATH"
 
