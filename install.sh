@@ -112,7 +112,7 @@ install_ohmyzsh() {
     fi
 
     info "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc || true
     ok "Oh My Zsh installed"
 }
 
@@ -162,8 +162,13 @@ set_default_shell() {
     if ! grep -q "$zsh_path" /etc/shells; then
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
-    sudo chsh -s "$zsh_path" "$USER"
-    ok "Default shell: zsh"
+    if sudo chsh -s "$zsh_path" "$USER"; then
+        ok "Default shell: zsh"
+    else
+        warn "chsh failed, trying without sudo..."
+        chsh -s "$zsh_path"
+        ok "Default shell: zsh"
+    fi
 }
 
 # --- Root setup ---
@@ -183,7 +188,7 @@ setup_root() {
         ok "Root: Oh My Zsh already installed"
     else
         info "Root: Installing Oh My Zsh..."
-        sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc || true
         ok "Root: Oh My Zsh installed"
     fi
 
