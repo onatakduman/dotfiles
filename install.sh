@@ -162,12 +162,24 @@ set_default_shell() {
     if ! grep -q "$zsh_path" /etc/shells; then
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
-    if sudo chsh -s "$zsh_path" "$USER"; then
+    if sudo chsh -s "$zsh_path" "$USER" 2>/dev/null || chsh -s "$zsh_path" 2>/dev/null; then
         ok "Default shell: zsh"
     else
-        warn "chsh failed, trying without sudo..."
-        chsh -s "$zsh_path"
-        ok "Default shell: zsh"
+        warn "chsh failed, adding 'exec zsh' to .bashrc as fallback..."
+        local marker="# dotfiles: auto-switch to zsh"
+        if ! grep -qF "$marker" "$HOME/.bashrc" 2>/dev/null; then
+            cat >> "$HOME/.bashrc" <<BASHEOF
+
+$marker
+if [ -x "$zsh_path" ]; then
+    export SHELL="$zsh_path"
+    exec "$zsh_path" -l
+fi
+BASHEOF
+            ok "Added zsh auto-switch to .bashrc"
+        else
+            ok ".bashrc already has zsh auto-switch"
+        fi
     fi
 }
 
@@ -215,8 +227,11 @@ setup_root() {
     ok "Root: Linked /root/.zshrc -> $DOTFILES_DIR/.zshrc"
 
     # Default shell for root
-    sudo chsh -s "$zsh_path" root
-    ok "Root: Default shell set to zsh"
+    if sudo chsh -s "$zsh_path" root 2>/dev/null; then
+        ok "Root: Default shell set to zsh"
+    else
+        warn "Root: chsh failed, skipping root shell change"
+    fi
 }
 
 # --- Main ---
