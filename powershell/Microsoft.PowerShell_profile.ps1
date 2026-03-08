@@ -2,8 +2,11 @@
 oh-my-posh init pwsh --config "$env:USERPROFILE\dotfiles\powershell\ohmyposh.omp.json" | Invoke-Expression
 
 # PSReadLine - History list (matching past commands while typing)
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle ListView
+$psrlVersion = (Get-Module PSReadLine).Version
+if ($psrlVersion -ge [version]"2.2.0") {
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -PredictionViewStyle ListView
+}
 Set-PSReadLineOption -HistoryNoDuplicates:$true
 Set-PSReadLineOption -MaximumHistoryCount 10000
 
