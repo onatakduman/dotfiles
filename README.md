@@ -72,6 +72,14 @@ powershell -File $env:USERPROFILE\dotfiles\install.ps1
 
 ## Troubleshooting
 
+**Linux: Zsh doesn't start after install**
+
+The installer changes the default shell with `chsh`, but this requires a full logout/login to take effect. To start using zsh immediately without logging out:
+
+```bash
+exec zsh -l
+```
+
 **PowerShell: "running scripts is disabled on this system"**
 
 If you see this error, run the following command once before installing:
